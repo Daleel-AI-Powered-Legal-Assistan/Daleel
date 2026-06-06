@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل محامي — دليل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --gold:#d4a017; --gold2:#f5c842;
+      --accent:#d4a017; --accent2:#b8860b;
+      --green:#34d399; --red:#f87171;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           display:flex; justify-content:center; align-items:center;
+           min-height:100vh; padding:20px; }
+    .card { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--radius); padding:40px;
+            width:100%; max-width:440px; }
+    .icon { text-align:center; font-size:48px; margin-bottom:8px; }
+    .card h1 { text-align:center; margin-bottom:8px; font-size:22px; color:var(--gold); }
+    .card .sub { text-align:center; color:var(--muted); margin-bottom:24px; font-size:14px; line-height:1.7; }
+    .section-label { font-size:12px; font-weight:600; color:var(--gold); letter-spacing:0.1em;
+                     text-transform:uppercase; margin:20px 0 12px; padding-bottom:6px;
+                     border-bottom:1px solid var(--border); }
+    .field { margin-bottom:16px; }
+    .field label { display:block; margin-bottom:6px; font-size:14px; color:var(--muted); }
+    .field input { width:100%; padding:10px 14px; background:var(--surface2);
+                   border:1px solid var(--border); border-radius:8px;
+                   color:var(--text); font-size:15px; }
+    .field input[type="email"] { direction:ltr; }
+    .field input:focus { outline:none; border-color:var(--gold); }
+    .btn { width:100%; padding:12px; background:linear-gradient(135deg,var(--gold),var(--accent2));
+           border:none; border-radius:8px; color:#fff; font-size:16px;
+           font-weight:600; cursor:pointer; margin-top:8px; }
+    .btn:hover { opacity:0.9; }
+    .links { text-align:center; margin-top:16px; font-size:13px; }
+    .links a { color:var(--gold); text-decoration:none; }
+    .links a:hover { text-decoration:underline; }
+    .flash { padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+    .flash.error { background:rgba(248,113,113,0.15); color:var(--red); border:1px solid var(--red); }
+    .flash.success { background:rgba(52,211,153,0.15); color:var(--green); border:1px solid var(--green); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">&#9878;</div>
+    <h1>تسجيل حساب محامي</h1>
+    <p class="sub">أدخل بياناتك ورقم نقابة المحامين للتحقق الفوري</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="section-label">بيانات النقابة</div>
+      <div class="field">
+        <label>الاسم الرباعي بالعربية (كما في سجل النقابة)</label>
+        <input type="text" name="full_name_ar" value="{{ full_name_ar|default('') }}" required autofocus />
+      </div>
+      <div class="field">
+        <label>رقم نقابة المحامين (6 أرقام)</label>
+        <input type="text" name="lawyer_id" value="{{ lawyer_id|default('') }}" maxlength="6"
+               pattern="\d{6}" inputmode="numeric" required
+               style="direction:ltr; text-align:center; letter-spacing:0.3em; font-size:18px;" />
+      </div>
+
+      <div class="section-label">بيانات الحساب</div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" name="email" value="{{ email|default('') }}" required />
+      </div>
+      <div class="field">
+        <label>كلمة المرور (حرف كبير + صغير + رقم + رمز خاص)</label>
+        <input type="password" name="password" required />
+      </div>
+      <div class="field">
+        <label>تأكيد كلمة المرور</label>
+        <input type="password" name="confirm_password" required />
+      </div>
+
+      <button type="submit" class="btn">تسجيل والتحقق</button>
+    </form>
+
+    <div class="links">
+      لديك حساب؟ <a href="{{ url_for('auth.login') }}">تسجيل الدخول</a>
+      &nbsp;|&nbsp;
+      <a href="{{ url_for('index') }}">العودة للمحادثة</a>
+    </div>
+  </div>
+</body>
+</html>

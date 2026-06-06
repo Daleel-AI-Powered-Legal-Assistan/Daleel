@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إنشاء حساب — مساعد قانون العمل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --accent:#4f8ef7; --accent2:#7c5cfc;
+      --green:#34d399; --red:#f87171; --yellow:#fbbf24;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           display:flex; justify-content:center; align-items:center;
+           min-height:100vh; }
+    .card { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--radius); padding:40px;
+            width:100%; max-width:420px; }
+    .card h1 { text-align:center; margin-bottom:8px; font-size:22px; }
+    .card .sub { text-align:center; color:var(--muted); margin-bottom:24px; font-size:14px; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; margin-bottom:6px; font-size:14px; color:var(--muted); }
+    .field input { width:100%; padding:10px 14px; background:var(--surface2);
+                   border:1px solid var(--border); border-radius:8px;
+                   color:var(--text); font-size:15px; }
+    .field input[type="email"] { direction:ltr; }
+    .field input:focus { outline:none; border-color:var(--accent); }
+    .btn { width:100%; padding:12px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+           border:none; border-radius:8px; color:#fff; font-size:16px;
+           font-weight:600; cursor:pointer; margin-top:8px; }
+    .btn:hover { opacity:0.9; }
+    .links { text-align:center; margin-top:16px; font-size:13px; }
+    .links a { color:var(--accent); text-decoration:none; }
+    .flash { padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+    .flash.error { background:rgba(248,113,113,0.15); color:var(--red); border:1px solid var(--red); }
+    .flash.success { background:rgba(52,211,153,0.15); color:var(--green); border:1px solid var(--green); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>إنشاء حساب جديد</h1>
+    <p class="sub">سجّل للوصول إلى ميزات إضافية</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="field">
+        <label>الاسم الكامل</label>
+        <input type="text" name="full_name" value="{{ full_name|default('') }}" required autofocus />
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" name="email" value="{{ email|default('') }}" required />
+      </div>
+      <div class="field">
+        <label>كلمة المرور (حرف كبير + صغير + رقم + رمز خاص)</label>
+        <input type="password" name="password" required />
+      </div>
+      <div class="field">
+        <label>تأكيد كلمة المرور</label>
+        <input type="password" name="confirm_password" required />
+      </div>
+      <button type="submit" class="btn">إنشاء الحساب</button>
+    </form>
+
+    <div class="links">
+      لديك حساب؟ <a href="{{ url_for('auth.login') }}">تسجيل الدخول</a>
+    </div>
+  </div>
+</body>
+</html>

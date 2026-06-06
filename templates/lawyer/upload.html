@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>رفع ملف — مساعد قانون العمل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --accent:#4f8ef7; --accent2:#7c5cfc;
+      --green:#34d399; --red:#f87171;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           display:flex; justify-content:center; align-items:center;
+           min-height:100vh; padding:20px; }
+    .card { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--radius); padding:40px;
+            width:100%; max-width:500px; }
+    .card h1 { text-align:center; margin-bottom:8px; font-size:22px; }
+    .card .sub { text-align:center; color:var(--muted); margin-bottom:24px; font-size:14px; line-height:1.6; }
+    .field { margin-bottom:20px; }
+    .field label { display:block; margin-bottom:6px; font-size:14px; color:var(--muted); }
+    .field .hint { font-size:12px; color:var(--muted); margin-top:4px; }
+    .drop-zone { border:2px dashed var(--border); border-radius:var(--radius);
+                 padding:40px; text-align:center; cursor:pointer;
+                 transition:border-color 0.3s; }
+    .drop-zone:hover { border-color:var(--accent); }
+    .drop-zone.active { border-color:var(--green); background:rgba(52,211,153,0.05); }
+    .drop-zone input { display:none; }
+    .drop-zone .icon { font-size:40px; margin-bottom:8px; }
+    .drop-zone .label { color:var(--muted); font-size:14px; }
+    .drop-zone .filename { color:var(--green); font-size:14px; margin-top:8px; display:none; }
+    .btn { width:100%; padding:12px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+           border:none; border-radius:8px; color:#fff; font-size:16px;
+           font-weight:600; cursor:pointer; }
+    .btn:hover { opacity:0.9; }
+    .btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .links { text-align:center; margin-top:16px; font-size:13px; }
+    .links a { color:var(--accent); text-decoration:none; }
+    .flash { padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+    .flash.error { background:rgba(248,113,113,0.15); color:var(--red); border:1px solid var(--red); }
+    .flash.success { background:rgba(52,211,153,0.15); color:var(--green); border:1px solid var(--green); }
+    .supported { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+    .supported span { background:var(--surface2); padding:4px 10px; border-radius:6px;
+                      font-size:12px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>&#128196; رفع مستند قانوني</h1>
+    <p class="sub">
+      ارفع أحكام قضائية، مذكرات قانونية، أو عقود عمل.
+      <br/>سيتم تحليل الملف وإضافته لقاعدة بياناتك الشخصية.
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" id="uploadForm">
+      <div class="field">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="icon">&#128449;</div>
+          <div class="label">اسحب الملف هنا أو اضغط للاختيار</div>
+          <div class="filename" id="fileName"></div>
+          <input type="file" id="fileInput" name="document"
+                 accept=".pdf,.docx,.txt" required />
+        </div>
+        <div class="supported">
+          <span>PDF</span>
+          <span>DOCX</span>
+          <span>TXT</span>
+        </div>
+        <div class="hint" style="text-align:center; margin-top:8px;">حد أقصى 10 ميغابايت</div>
+      </div>
+      <button type="submit" class="btn" id="submitBtn" disabled>رفع ومعالجة</button>
+    </form>
+
+    <div class="links">
+      <a href="{{ url_for('lawyer_bp.dashboard') }}">العودة للوحة المحامي</a>
+    </div>
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const submitBtn = document.getElementById('submitBtn');
+
+    fileInput.addEventListener('change', function() {
+      if (this.files.length) {
+        fileName.textContent = this.files[0].name;
+        fileName.style.display = 'block';
+        dropZone.classList.add('active');
+        submitBtn.disabled = false;
+      }
+    });
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('active'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      fileInput.files = e.dataTransfer.files;
+      fileInput.dispatchEvent(new Event('change'));
+    });
+
+    document.getElementById('uploadForm').addEventListener('submit', function() {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'جارٍ المعالجة...';
+    });
+  </script>
+</body>
+</html>

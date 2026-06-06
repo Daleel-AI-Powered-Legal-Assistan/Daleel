@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>التحقق من صفة المحامي — مساعد قانون العمل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --accent:#4f8ef7; --accent2:#7c5cfc;
+      --green:#34d399; --red:#f87171; --yellow:#fbbf24;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           display:flex; justify-content:center; align-items:center;
+           min-height:100vh; padding:20px; }
+    .card { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--radius); padding:40px;
+            width:100%; max-width:500px; }
+    .card h1 { text-align:center; margin-bottom:8px; font-size:22px; }
+    .card .sub { text-align:center; color:var(--muted); margin-bottom:24px; font-size:14px; line-height:1.6; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; margin-bottom:6px; font-size:14px; color:var(--muted); }
+    .field input { width:100%; padding:10px 14px; background:var(--surface2);
+                   border:1px solid var(--border); border-radius:8px;
+                   color:var(--text); font-size:15px; }
+    .field input:focus { outline:none; border-color:var(--accent); }
+    .field .hint { font-size:12px; color:var(--muted); margin-top:4px; }
+    .btn { width:100%; padding:12px; background:linear-gradient(135deg,var(--accent),var(--accent2));
+           border:none; border-radius:8px; color:#fff; font-size:16px;
+           font-weight:600; cursor:pointer; margin-top:8px; }
+    .btn:hover { opacity:0.9; }
+    .links { text-align:center; margin-top:16px; font-size:13px; }
+    .links a { color:var(--accent); text-decoration:none; }
+    .flash { padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+    .flash.error { background:rgba(248,113,113,0.15); color:var(--red); border:1px solid var(--red); }
+    .flash.success { background:rgba(52,211,153,0.15); color:var(--green); border:1px solid var(--green); }
+    .flash.info { background:rgba(79,142,247,0.15); color:var(--accent); border:1px solid var(--accent); }
+    .flash.warning { background:rgba(251,191,36,0.15); color:var(--yellow); border:1px solid var(--yellow); }
+    .status-box { padding:16px; border-radius:8px; margin-bottom:20px; text-align:center; }
+    .status-pending { background:rgba(251,191,36,0.1); border:1px solid var(--yellow); color:var(--yellow); }
+    .status-approved { background:rgba(52,211,153,0.1); border:1px solid var(--green); color:var(--green); }
+    .status-rejected { background:rgba(248,113,113,0.1); border:1px solid var(--red); color:var(--red); }
+    .shield { font-size:48px; text-align:center; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="shield">&#128737;</div>
+    <h1>التحقق من صفة المحامي</h1>
+    <p class="sub">
+      هذه الميزة متاحة فقط للمحامين المسجلين في نقابة المحامين الأردنيين.
+      <br/>سيتم مراجعة طلبك من قبل مسؤول النظام.
+    </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+    <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    {% if verification %}
+      {% if verification.status == 'pending' %}
+      <div class="status-box status-pending">
+        <strong>&#9203; طلبك قيد المراجعة</strong>
+        <br/>رقم النقابة: {{ verification.lawyer_id_number }}
+        <br/>تاريخ التقديم: {{ verification.submitted_at }}
+      </div>
+
+      {% elif verification.status == 'rejected' %}
+      <div class="status-box status-rejected">
+        <strong>&#10060; تم رفض الطلب</strong>
+        {% if verification.rejection_reason %}
+        <br/>السبب: {{ verification.rejection_reason }}
+        {% endif %}
+        <br/><br/>يمكنك إعادة التقديم بمعلومات صحيحة.
+      </div>
+      {% endif %}
+    {% endif %}
+
+    {% if not verification or verification.status == 'rejected' %}
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>رقم النقابة (6 أرقام)</label>
+        <input type="text" name="lawyer_id" pattern="\d{6}" maxlength="6"
+               value="{{ lawyer_id|default('') }}" required
+               placeholder="مثال: 123456" style="direction:ltr; text-align:center;" />
+        <div class="hint">رقم التسجيل في نقابة المحامين الأردنيين</div>
+      </div>
+      <div class="field">
+        <label>الاسم الكامل بالعربية (كما هو مسجل في النقابة)</label>
+        <input type="text" name="full_name_ar" value="{{ full_name_ar|default('') }}" required />
+      </div>
+      <div class="field">
+        <label>صورة بطاقة النقابة (اختياري — يُسرّع المراجعة)</label>
+        <input type="file" name="id_document" accept=".jpg,.jpeg,.png,.pdf" />
+        <div class="hint">JPG, PNG, أو PDF — حد أقصى 5 ميغابايت</div>
+      </div>
+      <button type="submit" class="btn">إرسال طلب التحقق</button>
+    </form>
+    {% endif %}
+
+    <div class="links">
+      <a href="{{ url_for('index') }}">العودة للمحادثة</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>بوابة المحامي — دليل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --gold:#d4a017; --gold2:#f5c842;
+      --accent:#d4a017; --accent2:#b8860b;
+      --green:#34d399; --red:#f87171;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           display:flex; justify-content:center; align-items:center;
+           min-height:100vh; padding:20px; }
+    .card { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--radius); padding:40px;
+            width:100%; max-width:440px; text-align:center; }
+    .icon { font-size:56px; margin-bottom:12px; }
+    .card h1 { font-size:22px; margin-bottom:8px; color:var(--gold); }
+    .card .sub { color:var(--muted); margin-bottom:32px; font-size:14px; line-height:1.7; }
+    .options { display:flex; flex-direction:column; gap:12px; }
+    .opt-btn { display:block; width:100%; padding:14px; border-radius:10px;
+               font-size:16px; font-weight:600; cursor:pointer;
+               text-decoration:none; text-align:center; transition:all 0.2s; }
+    .opt-btn.primary { background:linear-gradient(135deg,var(--gold),var(--accent2));
+                       border:none; color:#fff; }
+    .opt-btn.primary:hover { opacity:0.9; transform:translateY(-1px); }
+    .opt-btn.secondary { background:transparent; border:1px solid var(--gold);
+                         color:var(--gold); }
+    .opt-btn.secondary:hover { background:rgba(212,160,23,0.1); }
+    .divider { display:flex; align-items:center; gap:12px;
+               margin:4px 0; color:var(--muted); font-size:13px; }
+    .divider::before, .divider::after {
+      content:''; flex:1; height:1px; background:var(--border);
+    }
+    .back { margin-top:24px; font-size:13px; }
+    .back a { color:var(--muted); text-decoration:none; }
+    .back a:hover { color:var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">&#9878;</div>
+    <h1>بوابة المحامين</h1>
+    <p class="sub">
+      للوصول إلى ميزات المحامي المتقدمة،
+      <br/>يرجى تسجيل الدخول أو إنشاء حساب جديد.
+    </p>
+
+    <div class="options">
+      <a href="{{ url_for('auth.lawyer_register') }}"
+         class="opt-btn primary">إنشاء حساب جديد</a>
+      <div class="divider">أو</div>
+      <a href="{{ url_for('auth.login') }}?next={{ url_for('lawyer_bp.dashboard') }}"
+         class="opt-btn secondary">تسجيل الدخول</a>
+    </div>
+
+    <div class="back">
+      <a href="{{ url_for('index') }}">&#8592; العودة للمحادثة</a>
+    </div>
+  </div>
+</body>
+</html>

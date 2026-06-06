@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة المحامي — مساعد قانون العمل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --accent:#4f8ef7; --accent2:#7c5cfc;
+      --green:#34d399; --red:#f87171; --yellow:#fbbf24;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           padding:24px; }
+    .header { display:flex; justify-content:space-between; align-items:center;
+              margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .header h1 { font-size:22px; }
+    .nav { display:flex; gap:8px; }
+    .nav a { padding:8px 16px; background:var(--surface); border:1px solid var(--border);
+             border-radius:8px; color:var(--text); text-decoration:none; font-size:13px; }
+    .nav a:hover { border-color:var(--accent); color:var(--accent); }
+    .nav a.primary { background:linear-gradient(135deg,var(--accent),var(--accent2));
+                     border:none; color:#fff; font-weight:600; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+             gap:16px; margin-bottom:32px; }
+    .stat { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--radius); padding:20px; text-align:center; }
+    .stat .num { font-size:32px; font-weight:700; color:var(--accent); }
+    .stat .lbl { font-size:13px; color:var(--muted); margin-top:4px; }
+    table { width:100%; border-collapse:collapse; background:var(--surface);
+            border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    th { background:var(--surface2); padding:12px 16px; text-align:right;
+         font-size:13px; color:var(--muted); border-bottom:1px solid var(--border); }
+    td { padding:12px 16px; font-size:14px; border-bottom:1px solid var(--border); }
+    tr:last-child td { border-bottom:none; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+    .badge.completed { background:rgba(52,211,153,0.15); color:var(--green); }
+    .badge.processing { background:rgba(251,191,36,0.15); color:var(--yellow); }
+    .badge.failed { background:rgba(248,113,113,0.15); color:var(--red); }
+    .badge.pending { background:rgba(79,142,247,0.15); color:var(--accent); }
+    .del-btn { background:none; border:1px solid var(--red); color:var(--red);
+               padding:4px 12px; border-radius:6px; cursor:pointer; font-size:12px; }
+    .del-btn:hover { background:var(--red); color:#fff; }
+    .empty { text-align:center; padding:40px; color:var(--muted); }
+    .flash { padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+    .flash.success { background:rgba(52,211,153,0.15); color:var(--green); border:1px solid var(--green); }
+    .flash.error { background:rgba(248,113,113,0.15); color:var(--red); border:1px solid var(--red); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>&#128737; لوحة المحامي — {{ user.full_name }}</h1>
+    <div class="nav">
+      <a href="{{ url_for('index') }}">المحادثة</a>
+      <a href="{{ url_for('lawyer_bp.upload') }}" class="primary">+ رفع ملف جديد</a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="flash {{ cat }}">{{ msg }}</div>
+  {% endfor %}
+  {% endwith %}
+
+  <div class="stats">
+    <div class="stat">
+      <div class="num">{{ documents|length }}</div>
+      <div class="lbl">إجمالي الملفات</div>
+    </div>
+    <div class="stat">
+      <div class="num">{{ total_chunks }}</div>
+      <div class="lbl">مقاطع نصية مفهرسة</div>
+    </div>
+    <div class="stat">
+      <div class="num">{{ collection }}</div>
+      <div class="lbl">مجموعة Qdrant الشخصية</div>
+    </div>
+  </div>
+
+  {% if documents %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>اسم الملف</th>
+        <th>النوع</th>
+        <th>الحجم</th>
+        <th>المقاطع</th>
+        <th>الحالة</th>
+        <th>تاريخ الرفع</th>
+        <th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for doc in documents %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ doc.original_filename }}</td>
+        <td>{{ doc.file_type|upper }}</td>
+        <td>{{ (doc.file_size_bytes / 1024)|round(1) }} KB</td>
+        <td>{{ doc.chunk_count }}</td>
+        <td>
+          <span class="badge {{ doc.processing_status }}">
+            {% if doc.processing_status == 'completed' %}مكتمل
+            {% elif doc.processing_status == 'processing' %}قيد المعالجة
+            {% elif doc.processing_status == 'failed' %}فشل
+            {% else %}بالانتظار{% endif %}
+          </span>
+        </td>
+        <td>{{ doc.upload_date }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('lawyer_bp.delete_doc', doc_id=doc.id) }}"
+                onsubmit="return confirm('هل أنت متأكد من حذف هذا الملف؟')">
+            <button type="submit" class="del-btn">حذف</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <p style="font-size:36px; margin-bottom:12px;">&#128194;</p>
+    <p>لم يتم رفع أي ملفات بعد</p>
+    <p style="margin-top:8px;">
+      <a href="{{ url_for('lawyer_bp.upload') }}" style="color:var(--accent);">ارفع ملفك الأول</a>
+    </p>
+  </div>
+  {% endif %}
+</body>
+</html>

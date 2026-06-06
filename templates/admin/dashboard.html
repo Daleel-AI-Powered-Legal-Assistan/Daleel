@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة الإدارة — مساعد قانون العمل</title>
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:#2e3250; --accent:#4f8ef7; --accent2:#7c5cfc;
+      --green:#34d399; --red:#f87171; --yellow:#fbbf24;
+      --text:#e2e8f0; --muted:#8892b0; --radius:12px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text);
+           font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+           padding:24px; }
+    .header { display:flex; justify-content:space-between; align-items:center;
+              margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .header h1 { font-size:22px; }
+    .nav a { padding:8px 16px; background:var(--surface); border:1px solid var(--border);
+             border-radius:8px; color:var(--text); text-decoration:none; font-size:13px; }
+    .nav a:hover { border-color:var(--accent); color:var(--accent); }
+    .section { margin-bottom:32px; }
+    .section h2 { font-size:18px; margin-bottom:12px; padding-bottom:8px;
+                  border-bottom:1px solid var(--border); }
+    .pending-count { background:var(--yellow); color:#000; border-radius:20px;
+                     padding:2px 8px; font-size:12px; font-weight:700; margin-right:8px; }
+    table { width:100%; border-collapse:collapse; background:var(--surface);
+            border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    th { background:var(--surface2); padding:12px 16px; text-align:right;
+         font-size:13px; color:var(--muted); border-bottom:1px solid var(--border); }
+    td { padding:12px 16px; font-size:14px; border-bottom:1px solid var(--border); }
+    tr:last-child td { border-bottom:none; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+    .badge.pending { background:rgba(251,191,36,0.15); color:var(--yellow); }
+    .badge.approved { background:rgba(52,211,153,0.15); color:var(--green); }
+    .badge.rejected { background:rgba(248,113,113,0.15); color:var(--red); }
+    .action-btns { display:flex; gap:6px; }
+    .approve-btn { background:var(--green); color:#000; border:none; padding:6px 14px;
+                   border-radius:6px; cursor:pointer; font-size:12px; font-weight:600; }
+    .reject-btn { background:none; border:1px solid var(--red); color:var(--red);
+                  padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12px; }
+    .reject-btn:hover { background:var(--red); color:#fff; }
+    .empty { text-align:center; padding:30px; color:var(--muted); }
+    .flash { padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; }
+    .flash.success { background:rgba(52,211,153,0.15); color:var(--green); border:1px solid var(--green); }
+    .flash.info { background:rgba(79,142,247,0.15); color:var(--accent); border:1px solid var(--accent); }
+    .reject-form { display:none; margin-top:8px; }
+    .reject-form input { background:var(--surface2); border:1px solid var(--border);
+                         border-radius:6px; padding:6px 10px; color:var(--text);
+                         font-size:13px; width:200px; }
+    .reject-form button { margin-top:4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>&#9881; لوحة الإدارة</h1>
+    <div class="nav">
+      <a href="{{ url_for('index') }}">المحادثة</a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% for cat, msg in messages %}
+  <div class="flash {{ cat }}">{{ msg }}</div>
+  {% endfor %}
+  {% endwith %}
+
+  <!-- Pending Verifications -->
+  <div class="section">
+    <h2>
+      طلبات التحقق المعلّقة
+      {% if pending %}<span class="pending-count">{{ pending|length }}</span>{% endif %}
+    </h2>
+
+    {% if pending %}
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>البريد</th>
+          <th>رقم النقابة</th>
+          <th>الاسم بالعربية</th>
+          <th>تاريخ التقديم</th>
+          <th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in pending %}
+        <tr>
+          <td>{{ v.full_name }}</td>
+          <td style="direction:ltr">{{ v.email }}</td>
+          <td style="direction:ltr; font-weight:600;">{{ v.lawyer_id_number }}</td>
+          <td>{{ v.full_name_ar }}</td>
+          <td>{{ v.submitted_at }}</td>
+          <td>
+            <div class="action-btns">
+              <form method="POST" action="{{ url_for('admin_bp.approve', vid=v.id) }}">
+                <button type="submit" class="approve-btn"
+                        onclick="return confirm('اعتماد هذا المحامي؟')">&#10004; اعتماد</button>
+              </form>
+              <button class="reject-btn"
+                      onclick="this.nextElementSibling.style.display='block'">&#10060; رفض</button>
+              <div class="reject-form">
+                <form method="POST" action="{{ url_for('admin_bp.reject', vid=v.id) }}">
+                  <input type="text" name="reason" placeholder="سبب الرفض (اختياري)" />
+                  <br/>
+                  <button type="submit" class="reject-btn" style="margin-top:6px;">تأكيد الرفض</button>
+                </form>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">لا توجد طلبات معلّقة</div>
+    {% endif %}
+  </div>
+
+  <!-- All Verifications History -->
+  <div class="section">
+    <h2>سجل جميع الطلبات</h2>
+
+    {% if all_verifications %}
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>رقم النقابة</th>
+          <th>الحالة</th>
+          <th>تاريخ التقديم</th>
+          <th>تاريخ المراجعة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in all_verifications %}
+        <tr>
+          <td>{{ v.full_name_ar }}</td>
+          <td style="direction:ltr">{{ v.lawyer_id_number }}</td>
+          <td>
+            <span class="badge {{ v.status }}">
+              {% if v.status == 'approved' %}معتمد
+              {% elif v.status == 'rejected' %}مرفوض
+              {% else %}معلّق{% endif %}
+            </span>
+          </td>
+          <td>{{ v.submitted_at }}</td>
+          <td>{{ v.reviewed_at or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">لا يوجد سجل بعد</div>
+    {% endif %}
+  </div>
+</body>
+</html>
