@@ -21,7 +21,7 @@
 
 ## What is Daleel?
 
-**Daleel** (دليل) is an AI legal assistant that answers questions about the **Jordanian Labor Law No. 8 of 1996** in Arabic. It uses Retrieval-Augmented Generation (RAG) to ground every answer in the actual text of the law — no hallucinations, every answer cites exact article numbers.
+**Daleel** (دليل) is an AI legal assistant that answers questions about the **Jordanian Labor Laws** in Arabic. It uses Retrieval-Augmented Generation (RAG) to ground every answer in the actual text of the law — no hallucinations, every answer cites exact article numbers.
 
 Ask a question like *"ما هي حقوقي إذا تم فصلي بعد 7 سنوات؟"* and Daleel retrieves the relevant articles, court rulings, and regulations, then generates a clear Arabic answer like a knowledgeable lawyer would.
 
